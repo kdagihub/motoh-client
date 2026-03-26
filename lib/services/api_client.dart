@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:http/http.dart' as http;
 
 import '../models/api_error.dart';
@@ -8,11 +9,22 @@ typedef TokenReader = Future<String?> Function();
 
 class ApiClient {
   ApiClient({
-    this.baseUrl = 'http://10.0.2.2:8080',
+    String? baseUrl,
     TokenReader? tokenReader,
     http.Client? httpClient,
-  })  : _tokenReader = tokenReader,
+  })  : baseUrl = baseUrl ?? _defaultBaseUrl,
+        _tokenReader = tokenReader,
         _http = httpClient ?? http.Client();
+
+  static String get _defaultBaseUrl {
+    const env = String.fromEnvironment('API_BASE_URL');
+    if (env.isNotEmpty) return env;
+    if (kIsWeb) return 'http://localhost:8080';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+    return 'http://127.0.0.1:8080';
+  }
 
   final String baseUrl;
   final TokenReader? _tokenReader;
